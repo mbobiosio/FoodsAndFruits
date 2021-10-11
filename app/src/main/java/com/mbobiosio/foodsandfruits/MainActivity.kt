@@ -2,62 +2,61 @@ package com.mbobiosio.foodsandfruits
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.mbobiosio.foodsandfruits.model.Food
+import com.google.gson.Gson
+import com.mbobiosio.foodsandfruits.databinding.ActivityMainBinding
+import com.mbobiosio.foodsandfruits.listener.FoodClickListener
+import com.mbobiosio.foodsandfruits.model.Fruits
+import com.mbobiosio.foodsandfruits.ui.adapter.FoodsAdapter
+import com.mbobiosio.foodsandfruits.ui.fragment.FruitDetailFragment
 import com.mbobiosio.foodsandfruits.util.loadFoodsFromAsset
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 import timber.log.Timber
-import java.io.IOException
 
+/*
+* Created by Mbuodile Obiosio on Oct 10, 2021.
+* Twitter: @cazewonder
+* Nigeria
+*/
 class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var adapter: FoodsAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.lifecycleOwner = this
 
+        initAdapter()
         fetchDataFromJson()
-        Timber.d("OnCreate")
     }
 
     private fun fetchDataFromJson() {
-        try {
-            val foods = loadFoodsFromAsset(this)
-            val foodsArray = JSONArray(foods)
+        //load data from json data file
+        val foods = loadFoodsFromAsset(this)
 
-            Timber.d("Food array $foodsArray")
-            for (i in 0 until foodsArray.length()) {
-                val foodObj: JSONObject = foodsArray.getJSONObject(i)
-                foodObj.apply {
-                    val id = getInt("id")
-                    val name = getString("productName")
-                    val image = getInt("image")
-                    val from = getString("from")
-                    val nutrients = getString("nutrients")
-                    val quantity = getString("quantity")
-                    val price = getDouble("price")
-                    val organic = getBoolean("organic")
-                    val description = getString("description")
+        //use gson to parse json data to list
+        val foodList = Gson().fromJson(foods, Array<Fruits>::class.java).toList()
 
-                    //add objects to foods data class
-                    val food = Food(
-                        id = id,
-                        productName = name,
-                        image = image,
-                        from = from,
-                        nutrients = nutrients,
-                        quantity = quantity,
-                        price = price,
-                        isOrganic = organic,
-                        description = description
-                    )
+        //Timber.d("Foods $foodList")
+        /*
+        * This project uses ListAdapter so we call 'submitList' to parse data to adapter
+        *
+        * */
+        adapter.submitList(foodList)
+    }
 
-                    Timber.d("$food")
-                }
+    private fun initAdapter() {
+        adapter = FoodsAdapter(object: FoodClickListener {
+            override fun onItemClicked(fruits: Fruits) {
+                //Timber.d("$fruits")
+                val fragment = FruitDetailFragment()
+                val bundle = Bundle()
+                bundle.putSerializable("data", fruits)
+                fragment.arguments = bundle
+                fragment.show(supportFragmentManager, fragment.tag)
+
             }
-        } catch (e: JSONException) {
-
-        } catch (e: IOException) {
-
-        }
+        })
+        binding.foods.adapter = adapter
     }
 }

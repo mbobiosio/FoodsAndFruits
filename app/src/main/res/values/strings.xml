@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">FoodsAndFruits</string>
+
+    <string name="price_format" translatable="false">$ %s</string>
+    <string name="organic">Organic</string>
+    <string name="not_organic">Not Organic</string>
+    <string name="about">About</string>
+    <string name="origin">Origin</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>
